@@ -1,21 +1,37 @@
 # eclipse
 bin
-*.launch
+*
+.launch
+
 .settings
+
 .metadata
+
 .classpath
+
 .project
+
+
 
 # idea
 out
-*.ipr
-*.iws
-*.iml
+*
+.ipr
+*
+.iws
+*
+.iml
+
 .idea
+
+
 
 # gradle
 build
+
 .gradle
+
+
 
 # other
 eclipse
