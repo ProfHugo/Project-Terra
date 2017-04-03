@@ -2,8 +2,9 @@ package profhugo.terra.capabilities;
 
 public class Stamina implements IStamina {
 
-	public static final float MAX_STAMINA = 100f;
-	private float stamina = MAX_STAMINA;
+	public static final float STAMINA_ROOF = 100f;
+	private float staminaCap = STAMINA_ROOF;
+	private float stamina = staminaCap;
 
 	@Override
 	public void deductStamina(float value) {
@@ -14,8 +15,8 @@ public class Stamina implements IStamina {
 	@Override
 	public void addStamina(float value) {
 		this.stamina += value;
-		if (stamina > MAX_STAMINA)
-			stamina = MAX_STAMINA;
+		if (stamina > staminaCap)
+			stamina = staminaCap;
 
 	}
 
@@ -28,6 +29,29 @@ public class Stamina implements IStamina {
 	@Override
 	public float getStamina() {
 		return this.stamina;
+	}
+
+	@Override
+	public float getMaxStamina() {
+		return this.staminaCap;
+	}
+
+	@Override
+	public void addMaxStamina(float value) {
+		this.staminaCap += value;
+		
+	}
+
+	@Override
+	public void deductMaxStamina(float value) {
+		this.staminaCap -= value;
+		
+	}
+
+	@Override
+	public void setMaxStamina(float value) {
+		this.staminaCap = value;
+		
 	}
 
 }

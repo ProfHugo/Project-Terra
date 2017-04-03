@@ -2,12 +2,17 @@ package profhugo.terra.handler;
 
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
+import net.minecraft.entity.SharedMonsterAttributes;
+import net.minecraft.entity.ai.attributes.IAttributeInstance;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.ItemStack;
+import net.minecraft.potion.Potion;
+import net.minecraft.potion.PotionEffect;
 import net.minecraft.util.DamageSource;
+import net.minecraft.util.FoodStats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -28,8 +33,8 @@ import java.util.Random;
 public class EntityHandler {
 	public boolean hasWorldLoaded = false;
 	public static final ResourceLocation STAMINA_CAP = new ResourceLocation(ProjectTerra.MODID, "stamina");
-//	private int rightClickDelay = 0;
-//	private int chargeTick = 0;
+	// private int rightClickDelay = 0;
+	// private int chargeTick = 0;
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onWorldLoad(WorldEvent.Load event) {
@@ -45,28 +50,50 @@ public class EntityHandler {
 		if (!(entity instanceof EntityPlayerMP) || entity.getEntityWorld().isRemote)
 			return;
 		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
+		FoodStats hungerPack = ((EntityPlayer) entity).getFoodStats();
+		float hungerMod = hungerPack.getFoodLevel() / 20.0f;
+		stamPack.setMaxStamina(Stamina.STAMINA_ROOF * hungerMod);
 		float attackProgress = ((EntityPlayer) entity).getCooledAttackStrength(0);
+		float regenRate = stamPack.getMaxStamina() / 40 - (entity.getTotalArmorValue() / 20);
 		if (attackProgress >= 1 && !entity.isSprinting() && (entity.onGround || entity.isElytraFlying())) {
 			if (entity.isActiveItemStackBlocking()) {
-				stamPack.addStamina(1f);
+				stamPack.addStamina(regenRate / 3);
 			} else {
-				stamPack.addStamina(3f);
+				stamPack.addStamina(regenRate);
 			}
 
 		}
-//		ItemStack mainHand = entity.getActiveItemStack();
-//		if (mainHand != null) {
-//			if (entity.getActiveItemStack().getItemUseAction() == null) {
-//				rightClickDelay--;
-//			} else {
-//				rightClickDelay -= 2;
-//			}
-//		} else {
-//			rightClickDelay--;
-//		}
+		
+		
+		// ItemStack mainHand = entity.getActiveItemStack();
+		// if (mainHand != null) {
+		// if (entity.getActiveItemStack().getItemUseAction() == null) {
+		// rightClickDelay--;
+		// } else {
+		// rightClickDelay -= 2;
+		// }
+		// } else {
+		// rightClickDelay--;
+		// }
 
 	}
-
+	
+//	@SubscribeEvent(priority = EventPriority.LOWEST)
+//	public void onUpdateTwo(LivingUpdateEvent event) {
+//		EntityLivingBase entity = event.getEntityLiving();
+//		if (!(entity instanceof EntityPlayerMP) || entity.getEntityWorld().isRemote)
+//			return;
+//		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
+//		if (stamPack.getStamina() <= 0) {
+//			entity.addPotionEffect(new PotionEffect(Potion.getPotionFromResourceLocation("slowness"), 9999, 2, false, false));
+//		} else {
+//			if (entity.isSprinting()) {
+//				stamPack.deductStamina(1);
+//			}
+//			entity.removePotionEffect(Potion.getPotionFromResourceLocation("slowness"));
+//		}
+//	}
+	
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onEntityHurt(LivingHurtEvent event) {
 		EntityLivingBase entity = event.getEntityLiving();
@@ -143,24 +170,26 @@ public class EntityHandler {
 
 	}
 
-//	@SubscribeEvent
-//	public void onRightClick(PlayerInteractEvent.EntityInteract event) {
-//		EntityLivingBase entity = (EntityLivingBase) event.getEntity();
-//		EntityLivingBase target = (EntityLivingBase) event.getTarget();
-//		if (!(entity instanceof EntityLivingBase) || !(target instanceof EntityLivingBase))
-//			return;
-//		if (!(entity.getEntityWorld().isRemote) && rightClickDelay <= 0) {
-//			target.attackEntityFrom(DamageSource.generic, 4);
-//			entity.addChatMessage(new TextComponentString("DING!"));
-//			rightClickDelay = 10;
-//		}
-//	}
+	// @SubscribeEvent
+	// public void onRightClick(PlayerInteractEvent.EntityInteract event) {
+	// EntityLivingBase entity = (EntityLivingBase) event.getEntity();
+	// EntityLivingBase target = (EntityLivingBase) event.getTarget();
+	// if (!(entity instanceof EntityLivingBase) || !(target instanceof
+	// EntityLivingBase))
+	// return;
+	// if (!(entity.getEntityWorld().isRemote) && rightClickDelay <= 0) {
+	// target.attackEntityFrom(DamageSource.generic, 4);
+	// entity.addChatMessage(new TextComponentString("DING!"));
+	// rightClickDelay = 10;
+	// }
+	// }
 
 	@SubscribeEvent
 	public void onPlayerClone(PlayerEvent.Clone event) {
 		EntityPlayer player = event.getEntityPlayer();
 		IStamina stam = player.getCapability(StaminaProvider.STAMINA_CAP, null);
-		stam.setStamina(Stamina.MAX_STAMINA);
+		stam.setMaxStamina(Stamina.STAMINA_ROOF);
+		stam.setStamina(stam.getMaxStamina());
 	}
 
 }

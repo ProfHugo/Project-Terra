@@ -13,8 +13,8 @@ public class StaminaGui extends Gui {
 		
 	}
 
-	public void updateStamina(float stamina, Minecraft mc) {
-		text = String.format("Stamina: %d/%d", (int) stamina, (int) Stamina.MAX_STAMINA);
+	public void updateStamina(float stamina, float maxStamina, Minecraft mc) {
+		text = String.format("Stamina: %d/%d", (int) stamina, (int) maxStamina);
 		ScaledResolution scaled = new ScaledResolution(mc);
 		int width = scaled.getScaledWidth();
 		int height = scaled.getScaledHeight();

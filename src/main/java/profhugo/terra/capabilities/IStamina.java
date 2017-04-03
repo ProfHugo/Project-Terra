@@ -8,4 +8,12 @@ public interface IStamina {
 	public void setStamina(float value);
 
 	public float getStamina();
+
+	public float getMaxStamina();
+	
+	public void addMaxStamina(float value);
+	
+	public void deductMaxStamina(float value);
+
+	public void setMaxStamina(float value);
 }

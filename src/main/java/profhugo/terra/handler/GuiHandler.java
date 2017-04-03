@@ -15,11 +15,12 @@ public class GuiHandler {
 	
 	StaminaGui stamGui = new StaminaGui(Minecraft.getMinecraft());
 	float currentStam;
+	float currentStamCap;
 	
 	@SubscribeEvent
 	public void onRenderGui(RenderGameOverlayEvent.Post event) {
 		if (event.getType() != ElementType.EXPERIENCE) return; 
-		stamGui.updateStamina(currentStam, Minecraft.getMinecraft());
+		stamGui.updateStamina(currentStam, currentStamCap, Minecraft.getMinecraft());
 	}
 	
 	@SubscribeEvent
@@ -29,5 +30,6 @@ public class GuiHandler {
 			return;
 		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
 		currentStam = stamPack.getStamina();
+		currentStamCap = stamPack.getMaxStamina();
 	}
 }
