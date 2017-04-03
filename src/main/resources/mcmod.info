@@ -1,14 +1,14 @@
 [
 {
-  "modid": "examplemod",
-  "name": "Example Mod",
-  "description": "Example placeholder mod.",
+  "modid": "project_terra",
+  "name": "Project Terra: The Overhaul",
+  "description": "Bye damage immunity! Hello stamina!",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://github.com/ProfHugo/Project-Terra",
   "updateUrl": "",
-  "authorList": ["ExampleDude"],
-  "credits": "The Forge and FML guys, for making this example",
+  "authorList": ["ProfHugo"],
+  "credits": "ProfHugo, Mojang, and the entire Forge dev team",
   "logoFile": "",
   "screenshots": [],
   "dependencies": []
