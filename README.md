@@ -15,12 +15,18 @@ My first mod. This aims to improve some aspects of combat, such as adding a stam
   - Players regenerates stamina passively, and that amount is modified based on how much armor that player has on, and what the player is doing.
     - The base regen rate is 2.5% of the player's max stamina per tick (50% max stamina per second), and is reduced to 1.5% maxStam/tick with 20 armor values
     - The player also don't regen any stamina if he/she is running or if he/she is airborne (excluding elytra flight)
-  - As of now, only attacking and blocking cost stamina
-    - The stamina consuption per hit is based on the attack speed of the weapon, and the higher the attack speed, the lower the stamina cost
+  - As of now, attacking, blocking, and using bows cost stamina
+    - For melee attacks, stamina consuption per hit is based on the attack speed of the weapon, and the higher the attack speed, the lower the stamina cost
       - The current formula is: y = log(x/14.8)/log(0.91)
         - x is the attack speed value of held weapon
         - y is the stamina cost per swing
-    - Blocking also consumes stamina (current values are very broken and unbalanced)
-      - Currently, it's post mitigation amount multiplied by 40, so it cost approx. 20 stamina per block
-        - This is broken, because if the blocker gets backstabed, he/she could lose well over 250 stamina easily
+    - Blocking also consumes stamina 
+      - The current formula is: y = d/s * 2
+        - y is the cost for blocking
+        - d is the attacker's attack damage (subjected to change to total damage, including bonus damage from other mods and stuff)
+        - s is the attacker's attack speed
+        - Everything is subjected to change
         - If the blocker runs out of stamina after blocking, he/she gets guardbroken, in which their shield would be disabled for 2 seconds (WIP, similar to how axes could guardbreak in vanilla Minecraft
+    - Bows also consume stamina upon releasing an arrow
+      - The current formula is: chargeTicks * 0.75, up to a maximum of 35 stamina
+        - Stamina doesn't recharge, nor reduce while charging a bow
