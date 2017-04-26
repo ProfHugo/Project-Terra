@@ -14,8 +14,8 @@ import net.minecraft.item.ItemStack;
 
 /**
  * This class provides methods to easily get, and set weapon attributes, such as
- * attack damage and attack speed without the hassle of converting multimap to
- * attribute modifiers.
+ * attack damage and attack speed without the hassle of converting multimap
+ * entries to attribute modifiers.
  * 
  * @author ProfHugo
  */
@@ -37,7 +37,7 @@ public final class WeaponsUtil {
 	 * 
 	 * @author ProfHugo
 	 */
-	public static double getAttackDamage(ItemStack stack, @Nullable EntityEquipmentSlot slot) {
+	public static double getAttackDamage(@Nullable ItemStack stack, @Nullable EntityEquipmentSlot slot) {
 		double attackDamage = 1.0D;
 		if (slot == null)
 			slot = EntityEquipmentSlot.MAINHAND;
@@ -63,7 +63,7 @@ public final class WeaponsUtil {
 	 * 
 	 * @author ProfHugo
 	 */
-	public static double getAttackSpeed(ItemStack stack, @Nullable EntityEquipmentSlot slot) {
+	public static double getAttackSpeed(@Nullable ItemStack stack, @Nullable EntityEquipmentSlot slot) {
 		double attackSpeed = 4.0D;
 		if (slot == null)
 			slot = EntityEquipmentSlot.MAINHAND;
@@ -95,7 +95,9 @@ public final class WeaponsUtil {
 	 * 
 	 * @author ProfHugo
 	 */
-	public static void setAttackDamage(ItemStack stack, double amount, @Nullable EntityEquipmentSlot slot) {
+	public static void setAttackDamage(@Nullable ItemStack stack, double amount, @Nullable EntityEquipmentSlot slot) {
+		if (slot == null)
+			slot = EntityEquipmentSlot.MAINHAND;
 		if (stack != null) {
 			Multimap<String, AttributeModifier> weaponAttributes = stack.getItem().getAttributeModifiers(slot, stack);
 			if (!weaponAttributes.isEmpty()) {
@@ -120,7 +122,9 @@ public final class WeaponsUtil {
 	 * 
 	 * @author ProfHugo
 	 */
-	public static void setAttackSpeed(ItemStack stack, double amount, @Nullable EntityEquipmentSlot slot) {
+	public static void setAttackSpeed(@Nullable ItemStack stack, double amount, @Nullable EntityEquipmentSlot slot) {
+		if (slot == null)
+			slot = EntityEquipmentSlot.MAINHAND;
 		if (stack != null) {
 			Multimap<String, AttributeModifier> weaponAttributes = stack.getItem().getAttributeModifiers(slot, stack);
 			if (!weaponAttributes.isEmpty()) {

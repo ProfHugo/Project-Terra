@@ -20,7 +20,7 @@ public class GuiHandler {
 	@SubscribeEvent
 	public void onRenderGui(RenderGameOverlayEvent.Post event) {
 		if (event.getType() != ElementType.EXPERIENCE) return; 
-		stamGui.updateStamina(currentStam, currentStamCap, Minecraft.getMinecraft());
+		stamGui.updateStamina(currentStam, currentStamCap);
 	}
 	
 	@SubscribeEvent

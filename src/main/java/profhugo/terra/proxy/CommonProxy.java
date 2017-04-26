@@ -8,7 +8,6 @@ import profhugo.terra.capabilities.Stamina;
 import profhugo.terra.capabilities.StaminaStorage;
 import profhugo.terra.handler.CapabilityHandler;
 import profhugo.terra.handler.EntityHandler;
-import profhugo.terra.handler.GuiHandler;
 
 public class CommonProxy {
 	public void registerItemRenderer(Item item, int meta, String id) {
@@ -22,7 +21,6 @@ public class CommonProxy {
 		CapabilityManager.INSTANCE.register(IStamina.class, new StaminaStorage(), Stamina.class);
 		MinecraftForge.EVENT_BUS.register(new CapabilityHandler());
 		MinecraftForge.EVENT_BUS.register(new EntityHandler());
-		MinecraftForge.EVENT_BUS.register(new GuiHandler());
 
 	}
 

@@ -8,12 +8,13 @@ import profhugo.terra.capabilities.Stamina;
 public class StaminaGui extends Gui {
 
 	String text = "Stamina: ";
+	Minecraft mc;
 
 	public StaminaGui(Minecraft mc) {
-		
+		this.mc = mc;
 	}
 
-	public void updateStamina(float stamina, float maxStamina, Minecraft mc) {
+	public void updateStamina(float stamina, float maxStamina) {
 		text = String.format("Stamina: %d/%d", (int) stamina, (int) maxStamina);
 		ScaledResolution scaled = new ScaledResolution(mc);
 		int width = scaled.getScaledWidth();
