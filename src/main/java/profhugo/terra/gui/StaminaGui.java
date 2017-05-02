@@ -3,7 +3,6 @@ package profhugo.terra.gui;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.ScaledResolution;
-import profhugo.terra.capabilities.Stamina;
 
 public class StaminaGui extends Gui {
 

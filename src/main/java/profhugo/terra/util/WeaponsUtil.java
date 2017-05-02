@@ -7,6 +7,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.Multimap;
 
+import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.ai.attributes.AttributeModifier;
 import net.minecraft.inventory.EntityEquipmentSlot;
@@ -57,6 +58,13 @@ public final class WeaponsUtil {
 	}
 
 	/**
+	 * Returns the total attack damage of the entity.
+	 * @author ProfHugo
+	 */
+	public static double getAttackDamage(EntityLivingBase entity) {
+		return entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_DAMAGE).getAttributeValue();
+	}
+	/**
 	 * Returns the attack speed of the itemstack. Returns 4.0D if the stack is
 	 * null (not holding any item) or if there's no attack speed attribute
 	 * (holding a non-tool item).
@@ -80,6 +88,14 @@ public final class WeaponsUtil {
 			}
 		}
 		return attackSpeed;
+	}
+	
+	/**
+	 * Returns the total attack damage of the entity.
+	 * @author ProfHugo
+	 */
+	public static double getAttackSpeed(EntityLivingBase entity) {
+		return entity.getEntityAttribute(SharedMonsterAttributes.ATTACK_SPEED).getAttributeValue();
 	}
 
 	/**
