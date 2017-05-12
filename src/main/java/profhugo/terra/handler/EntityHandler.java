@@ -17,7 +17,6 @@ import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.EnumHand;
 import net.minecraft.util.FoodStats;
 import net.minecraft.util.ResourceLocation;
-import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.client.event.RenderSpecificHandEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
@@ -54,7 +53,7 @@ public class EntityHandler {
 			return;
 		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
 		FoodStats hungerPack = ((EntityPlayer) entity).getFoodStats();
-		float hungerMod = (20 - hungerPack.getFoodLevel()) * 2.5f;
+		float hungerMod =  (20 - hungerPack.getFoodLevel()) * 2.5f;
 		stamPack.setMaxStamina(Stamina.STAMINA_ROOF - hungerMod);
 		float attackProgress = ((EntityPlayer) entity).getCooledAttackStrength(0);
 		float regenRate = stamPack.getMaxStamina() / 40 - (entity.getTotalArmorValue() / 20);
@@ -62,7 +61,7 @@ public class EntityHandler {
 		if (attackProgress >= 1 && !entity.isSprinting() && (entity.onGround || entity.isElytraFlying())
 				&& (heldItem != null ? !heldItem.getItemUseAction().equals(EnumAction.BOW) : true)) {
 			if (entity.isActiveItemStackBlocking()) {
-				stamPack.addStamina(regenRate / 5);
+				stamPack.addStamina(regenRate / 3);
 			} else {
 				stamPack.addStamina(regenRate);
 			}
@@ -159,38 +158,17 @@ public class EntityHandler {
 		DamageSource source = event.getSource();
 		Entity target = event.getEntity();
 		Entity attacker = source.getSourceOfDamage();
-		if (target.getEntityWorld().isRemote || source.isDamageAbsolute() || !(target instanceof EntityLivingBase)
+		if (target.getEntityWorld().isRemote || !(target instanceof EntityLivingBase)
 				|| !((EntityLivingBase) target).isActiveItemStackBlocking() || attacker == null)
 			return;
-		Vec3d location = source.getDamageLocation();
-		if (location != null) {
-			Vec3d vec3d1 = target.getLook(1.0F);
-			Vec3d vec3d2 = location.subtractReverse(new Vec3d(target.posX, target.posY, target.posZ)).normalize();
-			vec3d2 = new Vec3d(vec3d2.xCoord, 0.0D, vec3d2.zCoord);
-			if (vec3d2.dotProduct(vec3d1) >= 0.0D) {
-				return;
-			}
-		}
 		IStamina targetStamPack = target.getCapability(StaminaProvider.STAMINA_CAP, null);
 		float stamina = targetStamPack.getStamina();
 		float cost = 5;
-		if (source.isExplosion()) {
-			cost = Math.max(100 - 100 / 6 * target.getDistanceToEntity(attacker), 10);
+		if (attacker instanceof EntityArrow) {
+			cost = 15f;
 			if (stamina > 0) {
 				targetStamPack.deductStamina(cost);
-				String message = String.format("You blocked an explosion with %d stamina!", (int) cost);
-				target.addChatMessage(new TextComponentString(message));
-			} else {
-				String message = String.format("You got guardbroken!");
-				target.addChatMessage(new TextComponentString(message));
-				((EntityPlayer) target).getCooldownTracker().setCooldown(Items.SHIELD, 100);
-			}
-			return;
-		} else if (source.isProjectile()) {
-			cost = (float) ((EntityArrow) attacker).getDamage() * 5f;
-			if (stamina > 0) {
-				targetStamPack.deductStamina(cost);
-				String message = String.format("You blocked a projectile with %d stamina!", (int) cost);
+				String message = String.format("You blocked an arrow with %d stamina!", (int) cost);
 				target.addChatMessage(new TextComponentString(message));
 			} else {
 				String message = String.format("You got guardbroken!");
@@ -203,7 +181,7 @@ public class EntityHandler {
 			if (source instanceof EntityDamageSource || source instanceof EntityDamageSourceIndirect) {
 				double attackDamage = WeaponsUtil.getAttackDamage(weapon, EntityEquipmentSlot.MAINHAND);
 				double attackSpeed = WeaponsUtil.getAttackSpeed(weapon, EntityEquipmentSlot.MAINHAND);
-				cost = (float) Math.max(attackDamage * Math.pow(5, -attackSpeed + 1) * 3, 5);
+				cost = (float) (attackDamage * Math.pow(5, -attackSpeed + 1) * 3);
 			}
 			if (stamina > 0) {
 				targetStamPack.deductStamina(cost);
