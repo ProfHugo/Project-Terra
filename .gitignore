@@ -1,6 +1,5 @@
 # eclipse
 bin
-*
 .launch
 
 .settings
@@ -15,13 +14,9 @@ bin
 
 # idea
 out
-*
 .ipr
-*
 .iws
-*
 .iml
-
 .idea
 
 
@@ -36,3 +31,14 @@ build
 # other
 eclipse
 run
+config
+crash-reports
+logs
+mods
+resourcepacks
+saves
+CREDITS-fml.txt
+forge-1.10.2-12.18.3.2254-changelog.txt
+options.txt
+usercache.json
+usernamecache.json

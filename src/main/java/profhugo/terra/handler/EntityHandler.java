@@ -7,6 +7,8 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityFireball;
+import net.minecraft.entity.projectile.EntityLargeFireball;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.EnumAction;
@@ -34,7 +36,7 @@ import profhugo.terra.capabilities.StaminaProvider;
 import profhugo.terra.util.WeaponsUtil;
 
 public class EntityHandler {
-	
+
 	public static final ResourceLocation STAMINA_CAP = new ResourceLocation(ProjectTerra.MODID, "stamina");
 	private boolean isExhausted;
 
@@ -42,7 +44,7 @@ public class EntityHandler {
 	public void onUpdate(LivingUpdateEvent event) {
 		EntityLivingBase entity = event.getEntityLiving();
 		if (!(entity instanceof EntityPlayerMP) || entity.getEntityWorld().isRemote)
-			return;		
+			return;
 		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
 		FoodStats hungerPack = ((EntityPlayer) entity).getFoodStats();
 		float hungerMod = (20 - hungerPack.getFoodLevel()) * 2.5f;
@@ -59,7 +61,7 @@ public class EntityHandler {
 			}
 
 		} else if (entity.isSprinting() && !isExhausted) {
-			stamPack.deductStamina(2 - regenRate/2);
+			stamPack.deductStamina(1 - regenRate / 4);
 		}
 		if (stamPack.getStamina() < 0) {
 			isExhausted = true;
@@ -67,26 +69,26 @@ public class EntityHandler {
 			isExhausted = false;
 		}
 	}
-	
+
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onJump(LivingJumpEvent event) {
 		EntityLivingBase entity = event.getEntityLiving();
 		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
 		float cost = (15 - stamPack.getMaxStamina() / 10) + entity.getTotalArmorValue();
 		if (!(entity instanceof EntityPlayer))
-			return;	
+			return;
 		if (isExhausted) {
 			entity.motionY *= 0.75;
 		} else {
 			stamPack.deductStamina(cost);
 		}
 	}
-	
+
 	@SubscribeEvent(priority = EventPriority.HIGH)
 	public void onClientUpdate(LivingUpdateEvent event) {
 		EntityLivingBase entity = event.getEntityLiving();
 		if (!(entity instanceof EntityPlayer))
-			return;	
+			return;
 		if (isExhausted) {
 			entity.motionX *= 0.75;
 			entity.motionZ *= 0.75;
@@ -193,23 +195,47 @@ public class EntityHandler {
 			}
 			return;
 		} else if (source.isProjectile()) {
-			cost = (float) ((EntityArrow) attacker).getDamage() * 5f;
-			if (stamina > 0) {
-				targetStamPack.deductStamina(cost);
-				String message = String.format("You blocked a projectile with %d stamina!", (int) cost);
-				target.addChatMessage(new TextComponentString(message));
+			if (attacker instanceof EntityArrow) {
+				cost = (float) ((EntityArrow) attacker).getDamage() * 5f;
+				if (stamina > 0) {
+					targetStamPack.deductStamina(cost);
+					String message = String.format("You blocked an arrow with %d stamina!", (int) cost);
+					target.addChatMessage(new TextComponentString(message));
+				} else {
+					String message = String.format("You got guardbroken!");
+					target.addChatMessage(new TextComponentString(message));
+					((EntityPlayer) target).getCooldownTracker().setCooldown(Items.SHIELD, 100);
+				}
+			} else if (attacker instanceof EntityFireball) {
+				cost = attacker instanceof EntityLargeFireball ? 50f : 15f;
+				if (stamina > 0) {
+					targetStamPack.deductStamina(cost);
+					String message = String.format("You blocked a fireball with %d stamina!", (int) cost);
+					target.addChatMessage(new TextComponentString(message));
+				} else {
+					String message = String.format("You got guardbroken!");
+					target.addChatMessage(new TextComponentString(message));
+					((EntityPlayer) target).getCooldownTracker().setCooldown(Items.SHIELD, 100);
+				}
 			} else {
-				String message = String.format("You got guardbroken!");
-				target.addChatMessage(new TextComponentString(message));
-				((EntityPlayer) target).getCooldownTracker().setCooldown(Items.SHIELD, 100);
+				cost = 10f;
+				if (stamina > 0) {
+					targetStamPack.deductStamina(cost);
+					String message = String.format("You blocked a projectile with %d stamina!", (int) cost);
+					target.addChatMessage(new TextComponentString(message));
+				} else {
+					String message = String.format("You got guardbroken!");
+					target.addChatMessage(new TextComponentString(message));
+					((EntityPlayer) target).getCooldownTracker().setCooldown(Items.SHIELD, 100);
+				}
 			}
-			return;
+				return;
 		} else if (attacker instanceof EntityLivingBase) {
 			ItemStack weapon = ((EntityLivingBase) attacker).getHeldItemMainhand();
 			if (source instanceof EntityDamageSource || source instanceof EntityDamageSourceIndirect) {
 				double attackDamage = WeaponsUtil.getAttackDamage(weapon, EntityEquipmentSlot.MAINHAND);
 				double attackSpeed = WeaponsUtil.getAttackSpeed(weapon, EntityEquipmentSlot.MAINHAND);
-				cost = (float) Math.max(attackDamage * Math.pow(5, -attackSpeed + 1) * 3, 5);
+				cost = (float) (weapon != null ? Math.max(attackDamage * Math.pow(5, -attackSpeed + 1) * 3, 5) : event.getAmount() * 15);
 			}
 			if (stamina > 0) {
 				targetStamPack.deductStamina(cost);
