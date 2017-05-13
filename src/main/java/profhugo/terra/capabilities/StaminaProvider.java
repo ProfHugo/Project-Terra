@@ -1,9 +1,12 @@
 package profhugo.terra.capabilities;
 
+import java.util.concurrent.Callable;
+
 import net.minecraft.nbt.NBTBase;
 import net.minecraft.util.EnumFacing;
 import net.minecraftforge.common.capabilities.Capability;
 import net.minecraftforge.common.capabilities.CapabilityInject;
+import net.minecraftforge.common.capabilities.CapabilityManager;
 import net.minecraftforge.common.capabilities.ICapabilitySerializable;
 
 public class StaminaProvider implements ICapabilitySerializable<NBTBase> {
@@ -11,6 +14,11 @@ public class StaminaProvider implements ICapabilitySerializable<NBTBase> {
 	public static final Capability<IStamina> STAMINA_CAP = null;
 
 	private IStamina instance = STAMINA_CAP.getDefaultInstance();
+	private static final StaminaStorage INSTANCE = new StaminaStorage();
+
+	public static void init() {
+		CapabilityManager.INSTANCE.register(IStamina.class, INSTANCE, new StaminaFactory());
+	}
 
 	@Override
 	public boolean hasCapability(Capability<?> capability, EnumFacing facing) {
@@ -19,10 +27,13 @@ public class StaminaProvider implements ICapabilitySerializable<NBTBase> {
 
 	@Override
 	public <T> T getCapability(Capability<T> capability, EnumFacing facing) {
-		if (STAMINA_CAP != null) {
-			return STAMINA_CAP.<T>cast(this.instance);
-		} else {
-			return null;
+		return capability == STAMINA_CAP ? STAMINA_CAP.<T>cast(this.instance) : null;
+	}
+
+	private static class StaminaFactory implements Callable<IStamina> {
+		@Override
+		public IStamina call() throws Exception {
+			return new Stamina();
 		}
 	}
 

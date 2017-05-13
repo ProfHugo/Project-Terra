@@ -14,19 +14,17 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
-import net.minecraft.util.EnumHand;
 import net.minecraft.util.FoodStats;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
-import net.minecraftforge.client.event.RenderSpecificHandEvent;
+import net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingUpdateEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.player.ArrowLooseEvent;
 import net.minecraftforge.event.entity.player.ArrowNockEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.event.world.WorldEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import profhugo.terra.ProjectTerra;
@@ -36,22 +34,15 @@ import profhugo.terra.capabilities.StaminaProvider;
 import profhugo.terra.util.WeaponsUtil;
 
 public class EntityHandler {
-	public boolean hasWorldLoaded = false;
+	
 	public static final ResourceLocation STAMINA_CAP = new ResourceLocation(ProjectTerra.MODID, "stamina");
-
-	@SubscribeEvent(priority = EventPriority.HIGHEST)
-	public void onWorldLoad(WorldEvent.Load event) {
-
-		if (hasWorldLoaded)
-			return;
-
-	}
+	private boolean isExhausted;
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onUpdate(LivingUpdateEvent event) {
 		EntityLivingBase entity = event.getEntityLiving();
 		if (!(entity instanceof EntityPlayerMP) || entity.getEntityWorld().isRemote)
-			return;
+			return;		
 		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
 		FoodStats hungerPack = ((EntityPlayer) entity).getFoodStats();
 		float hungerMod = (20 - hungerPack.getFoodLevel()) * 2.5f;
@@ -67,10 +58,39 @@ public class EntityHandler {
 				stamPack.addStamina(regenRate);
 			}
 
-		} else {
-			stamPack.addStamina(0);
+		} else if (entity.isSprinting() && !isExhausted) {
+			stamPack.deductStamina(2 - regenRate/2);
 		}
-
+		if (stamPack.getStamina() < 0) {
+			isExhausted = true;
+		} else {
+			isExhausted = false;
+		}
+	}
+	
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	public void onJump(LivingJumpEvent event) {
+		EntityLivingBase entity = event.getEntityLiving();
+		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
+		float cost = (15 - stamPack.getMaxStamina() / 10) + entity.getTotalArmorValue();
+		if (!(entity instanceof EntityPlayer))
+			return;	
+		if (isExhausted) {
+			entity.motionY *= 0.75;
+		} else {
+			stamPack.deductStamina(cost);
+		}
+	}
+	
+	@SubscribeEvent(priority = EventPriority.HIGH)
+	public void onClientUpdate(LivingUpdateEvent event) {
+		EntityLivingBase entity = event.getEntityLiving();
+		if (!(entity instanceof EntityPlayer))
+			return;	
+		if (isExhausted) {
+			entity.motionX *= 0.75;
+			entity.motionZ *= 0.75;
+		}
 	}
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
@@ -109,12 +129,6 @@ public class EntityHandler {
 
 	}
 
-	@SubscribeEvent
-	public void onHandRender(RenderSpecificHandEvent event) {
-		if (event.getHand().equals(EnumHand.OFF_HAND))
-			return;
-	}
-
 	// @SubscribeEvent
 	// public void onPlayerRender(RenderPlayerEvent.Pre event) {
 	// Just an idea, reserved for blue
@@ -132,14 +146,6 @@ public class EntityHandler {
 	// }
 	// event.setCanceled(true);
 	// }
-
-	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onUpdateTwo(LivingUpdateEvent event) {
-		EntityLivingBase entity = event.getEntityLiving();
-		if (!(entity instanceof EntityPlayerMP) || entity.getEntityWorld().isRemote)
-			return;
-
-	}
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onEntityHurt(LivingHurtEvent event) {
@@ -244,14 +250,15 @@ public class EntityHandler {
 			double attackSpeed = WeaponsUtil.getAttackSpeed(weapon, EntityEquipmentSlot.MAINHAND);
 			float attackProgress = ((EntityPlayer) entity).getCooledAttackStrength(0);
 			cost = (float) ((Math.log10(attackSpeed / 14.8)) / Math.log10(0.91));
-			if (attackProgress > 0.6f && stamina > 0) {
+			if (attackProgress > 0.4f && stamina > 0) {
 				cost *= attackProgress;
-			} else {
-				cost *= 0.6f;
+			} else if (stamina > 0) {
+				cost *= 0.3f;
+				stamPack.deductStamina(cost);
 				if (rng.nextBoolean() && weapon != null) {
-					entity.addChatMessage(
-							new TextComponentString("You swung your weapon too quickly, you cut yourself with it!"));
-					entity.attackEntityFrom(DamageSource.causePlayerDamage((EntityPlayer) entity), rng.nextInt(4));
+					entity.addChatMessage(new TextComponentString("You swung your weapon too quickly!"));
+					event.setCanceled(true);
+					return;
 				}
 			}
 			if (stamina > 0) {
