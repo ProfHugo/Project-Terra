@@ -7,8 +7,10 @@ import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.entity.projectile.EntityArrow;
+import net.minecraft.entity.projectile.EntityDragonFireball;
 import net.minecraft.entity.projectile.EntityFireball;
 import net.minecraft.entity.projectile.EntityLargeFireball;
+import net.minecraft.entity.projectile.EntityWitherSkull;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.EnumAction;
@@ -38,7 +40,6 @@ import profhugo.terra.util.WeaponsUtil;
 public class EntityHandler {
 
 	public static final ResourceLocation STAMINA_CAP = new ResourceLocation(ProjectTerra.MODID, "stamina");
-	private boolean isExhausted;
 
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onUpdate(LivingUpdateEvent event) {
@@ -60,13 +61,8 @@ public class EntityHandler {
 				stamPack.addStamina(regenRate);
 			}
 
-		} else if (entity.isSprinting() && !isExhausted) {
+		} else if (entity.isSprinting() && stamPack.getStamina() > 0) {
 			stamPack.deductStamina(1 - regenRate / 4);
-		}
-		if (stamPack.getStamina() < 0) {
-			isExhausted = true;
-		} else {
-			isExhausted = false;
 		}
 	}
 
@@ -75,12 +71,20 @@ public class EntityHandler {
 		EntityLivingBase entity = event.getEntityLiving();
 		IStamina stamPack = entity.getCapability(StaminaProvider.STAMINA_CAP, null);
 		float cost = (15 - stamPack.getMaxStamina() / 10) + entity.getTotalArmorValue();
+		if (!(entity instanceof EntityPlayer) || entity.getEntityWorld().isRemote)
+			return;
+		if (stamPack.getStamina() > 0 && entity.onGround) {
+			stamPack.deductStamina(cost);
+		}
+	}
+	
+	@SubscribeEvent(priority = EventPriority.HIGHEST)
+	public void onClientJump(LivingJumpEvent event) {
+		EntityLivingBase entity = event.getEntityLiving();
 		if (!(entity instanceof EntityPlayer))
 			return;
-		if (isExhausted) {
+		if (GuiHandler.getLocalStamina()[0] <= 0) {
 			entity.motionY *= 0.75;
-		} else {
-			stamPack.deductStamina(cost);
 		}
 	}
 
@@ -89,7 +93,7 @@ public class EntityHandler {
 		EntityLivingBase entity = event.getEntityLiving();
 		if (!(entity instanceof EntityPlayer))
 			return;
-		if (isExhausted) {
+		if (GuiHandler.getLocalStamina()[0] <= 0) {
 			entity.motionX *= 0.75;
 			entity.motionZ *= 0.75;
 		}
@@ -196,7 +200,7 @@ public class EntityHandler {
 			return;
 		} else if (source.isProjectile()) {
 			if (attacker instanceof EntityArrow) {
-				cost = (float) ((EntityArrow) attacker).getDamage() * 5f;
+				cost = (float) (((EntityArrow) attacker).getDamage() > 2.0f ? ((EntityArrow) attacker).getDamage() * 10f : 25f);
 				if (stamina > 0) {
 					targetStamPack.deductStamina(cost);
 					String message = String.format("You blocked an arrow with %d stamina!", (int) cost);
@@ -207,7 +211,9 @@ public class EntityHandler {
 					((EntityPlayer) target).getCooldownTracker().setCooldown(Items.SHIELD, 100);
 				}
 			} else if (attacker instanceof EntityFireball) {
-				cost = attacker instanceof EntityLargeFireball ? 50f : 15f;
+				cost = attacker instanceof EntityLargeFireball ? 50f
+						: attacker instanceof EntityDragonFireball ? 60f
+								: attacker instanceof EntityWitherSkull ? 40f : 15f;
 				if (stamina > 0) {
 					targetStamPack.deductStamina(cost);
 					String message = String.format("You blocked a fireball with %d stamina!", (int) cost);
@@ -229,13 +235,15 @@ public class EntityHandler {
 					((EntityPlayer) target).getCooldownTracker().setCooldown(Items.SHIELD, 100);
 				}
 			}
-				return;
+			return;
 		} else if (attacker instanceof EntityLivingBase) {
 			ItemStack weapon = ((EntityLivingBase) attacker).getHeldItemMainhand();
 			if (source instanceof EntityDamageSource || source instanceof EntityDamageSourceIndirect) {
 				double attackDamage = WeaponsUtil.getAttackDamage(weapon, EntityEquipmentSlot.MAINHAND);
 				double attackSpeed = WeaponsUtil.getAttackSpeed(weapon, EntityEquipmentSlot.MAINHAND);
-				cost = (float) (weapon != null ? Math.max(attackDamage * Math.pow(5, -attackSpeed + 1) * 3, 5) : event.getAmount() * 15);
+				cost = (float) (weapon != null ? Math.max(attackDamage * Math.pow(5, -attackSpeed + 1) * 3, 5)
+						: event.getAmount() * 15);
+				cost -= (cost / 2) * (((EntityLivingBase) target).getTotalArmorValue() / 20);
 			}
 			if (stamina > 0) {
 				targetStamPack.deductStamina(cost);

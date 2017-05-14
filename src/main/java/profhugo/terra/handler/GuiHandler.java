@@ -24,5 +24,9 @@ public class GuiHandler {
 		currentStam = f1;
 		currentStamCap = f2;
 	}
+	
+	public static float[] getLocalStamina() {
+		return new float[]{currentStam, currentStamCap};
+	}
 
 }
