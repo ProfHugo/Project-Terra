@@ -154,19 +154,6 @@ public class EntityHandler {
 	// }
 
 	@SubscribeEvent(priority = EventPriority.LOWEST)
-	public void onEntityHurt(LivingHurtEvent event) {
-		EntityLivingBase entity = event.getEntityLiving();
-		DamageSource source = event.getSource();
-		if (source.equals(DamageSource.inFire) || source.equals(DamageSource.lava) || source.equals(DamageSource.cactus)
-				|| source.equals(DamageSource.lightningBolt) || source.equals(DamageSource.inWall)) {
-			event.setAmount(event.getAmount() / 20);
-		}
-		entity.hurtResistantTime = 0;
-		entity.hurtTime = 1;
-
-	}
-
-	@SubscribeEvent(priority = EventPriority.LOWEST)
 	public void onAttackBlocked(LivingHurtEvent event) {
 		DamageSource source = event.getSource();
 		Entity target = event.getEntity();

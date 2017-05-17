@@ -2,7 +2,7 @@
 {
   "modid": "project_terra",
   "name": "Project Terra: The Overhaul",
-  "description": "Bye damage immunity! Hello stamina!",
+  "description": "Can you keep up?",
   "version": "${version}",
   "mcversion": "${mcversion}",
   "url": "https://github.com/ProfHugo/Project-Terra",
