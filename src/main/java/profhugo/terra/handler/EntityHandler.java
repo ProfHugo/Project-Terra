@@ -53,7 +53,7 @@ public class EntityHandler {
 		float attackProgress = ((EntityPlayer) entity).getCooledAttackStrength(0);
 		float regenRate = stamPack.getMaxStamina() / 40 - (entity.getTotalArmorValue() / 20);
 		ItemStack heldItem = entity.getActiveItemStack();
-		if (attackProgress >= 1 && !entity.isSprinting() && (entity.onGround || entity.isElytraFlying())
+		if (!entity.isInLava() && !entity.isInWater() && attackProgress >= 1 && !entity.isSprinting() && (entity.onGround || entity.isElytraFlying())
 				&& (heldItem != null ? !heldItem.getItemUseAction().equals(EnumAction.BOW) : true)) {
 			if (entity.isActiveItemStackBlocking()) {
 				stamPack.addStamina(regenRate / 5);
@@ -63,6 +63,8 @@ public class EntityHandler {
 
 		} else if (entity.isSprinting() && stamPack.getStamina() > 0) {
 			stamPack.deductStamina(1 - regenRate / 4);
+		} else if (entity.isInWater() && stamPack.getStamina() > 0) {
+			stamPack.deductStamina(0.8f - regenRate / 4);
 		}
 	}
 
@@ -96,6 +98,9 @@ public class EntityHandler {
 		if (GuiHandler.getLocalStamina()[0] <= 0) {
 			entity.motionX *= 0.75;
 			entity.motionZ *= 0.75;
+			if (entity.isInWater() || entity.isInLava()) {
+				entity.motionY = -0.05;
+			}
 		}
 	}
 

@@ -17,7 +17,8 @@ public class GuiHandler {
 		if (event.getType() != ElementType.EXPERIENCE)
 			return;
 		
-		stamGui.updateStamina(currentStam, currentStamCap);
+		stamGui.updateStaminaText(currentStam, currentStamCap);
+		stamGui.updateStaminaBar(currentStam, currentStamCap);
 	}
 	
 	public static void syncStamina(float f1, float f2) {
