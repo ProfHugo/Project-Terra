@@ -1,10 +1,8 @@
 package profhugo.terra.gui;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiIngame;
 import net.minecraft.client.gui.ScaledResolution;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.util.ResourceLocation;
 import profhugo.terra.handler.GuiHandler;
 
@@ -41,7 +39,7 @@ public class StaminaGui extends GuiIngame {
 		int bar1y = (int) height / 2 + height / 4 + bar1Height;
 		mc.renderEngine.bindTexture(new ResourceLocation("project_terra", "green_bar.png"));
 		this.drawTexturedModalRect(bar1x, bar1y - 2, 160, 20, bar1Width, bar1Height);
-		this.drawTexturedModalRect(bar1x + 2, bar1y, 1, 1, bar1Width - 4, bar1Height - 4);
+		this.drawTexturedModalRect(bar1x + 2, bar1y, 1, 1, (int) (GuiHandler.getLocalStamina()[0] * 0.8) - 4, bar1Height - 4);
 		//mc.renderEngine.bindTexture(new ResourceLocation("project_terra", "gray_bar.png"));
 		//gameUI.drawTexturedModalRect(x, y - 50, 1, 1, (int) (GuiHandler.getLocalStamina()[1] * 0.8), 8);
 	}

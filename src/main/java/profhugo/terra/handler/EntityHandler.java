@@ -1,7 +1,10 @@
 package profhugo.terra.handler;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.player.EntityPlayer;
@@ -15,11 +18,13 @@ import net.minecraft.init.Items;
 import net.minecraft.inventory.EntityEquipmentSlot;
 import net.minecraft.item.EnumAction;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.ItemTool;
 import net.minecraft.util.DamageSource;
 import net.minecraft.util.EntityDamageSource;
 import net.minecraft.util.EntityDamageSourceIndirect;
 import net.minecraft.util.FoodStats;
 import net.minecraft.util.ResourceLocation;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.event.entity.living.LivingEvent.LivingJumpEvent;
@@ -29,6 +34,7 @@ import net.minecraftforge.event.entity.player.ArrowLooseEvent;
 import net.minecraftforge.event.entity.player.ArrowNockEvent;
 import net.minecraftforge.event.entity.player.AttackEntityEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
+import net.minecraftforge.event.world.BlockEvent.BreakEvent;
 import net.minecraftforge.fml.common.eventhandler.EventPriority;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import profhugo.terra.ProjectTerra;
@@ -53,7 +59,8 @@ public class EntityHandler {
 		float attackProgress = ((EntityPlayer) entity).getCooledAttackStrength(0);
 		float regenRate = stamPack.getMaxStamina() / 40 - (entity.getTotalArmorValue() / 20);
 		ItemStack heldItem = entity.getActiveItemStack();
-		if (!entity.isInLava() && !entity.isInWater() && attackProgress >= 1 && !entity.isSprinting() && (entity.onGround || entity.isElytraFlying())
+		if (!entity.isInLava() && !entity.isInWater() && attackProgress >= 1 && !entity.isSprinting()
+				&& (entity.onGround || entity.isElytraFlying())
 				&& (heldItem != null ? !heldItem.getItemUseAction().equals(EnumAction.BOW) : true)) {
 			if (entity.isActiveItemStackBlocking()) {
 				stamPack.addStamina(regenRate / 5);
@@ -79,7 +86,7 @@ public class EntityHandler {
 			stamPack.deductStamina(cost);
 		}
 	}
-	
+
 	@SubscribeEvent(priority = EventPriority.HIGHEST)
 	public void onClientJump(LivingJumpEvent event) {
 		EntityLivingBase entity = event.getEntityLiving();
@@ -192,7 +199,8 @@ public class EntityHandler {
 			return;
 		} else if (source.isProjectile()) {
 			if (attacker instanceof EntityArrow) {
-				cost = (float) (((EntityArrow) attacker).getDamage() > 2.0f ? ((EntityArrow) attacker).getDamage() * 10f : 25f);
+				cost = (float) (((EntityArrow) attacker).getDamage() > 2.0f ? ((EntityArrow) attacker).getDamage() * 10f
+						: 25f);
 				if (stamina > 0) {
 					targetStamPack.deductStamina(cost);
 					String message = String.format("You blocked an arrow with %d stamina!", (int) cost);
@@ -301,6 +309,34 @@ public class EntityHandler {
 
 		}
 
+	}
+
+	@SubscribeEvent
+	public void onPlayerMine(BreakEvent event) {
+		EntityPlayer player = event.getPlayer();
+		if (player == null || event.getWorld().isRemote)
+			return;
+		ItemStack tool = player.getHeldItemMainhand();
+		IStamina stamPack = player.getCapability(StaminaProvider.STAMINA_CAP, null);
+		float stamina = stamPack.getStamina();
+		BlockPos pos = event.getPos();
+		IBlockState blockstate = event.getState();
+		float hardness = blockstate.getBlockHardness(event.getWorld(), pos);
+		// TODO make better formula
+		float cost = (float) (hardness * (5 + (4 - (tool != null && tool.getItem() instanceof ItemTool
+				? WeaponsUtil.getAttackSpeed(tool, null) : -4))));
+		if (stamina > 0) {
+			stamPack.deductStamina(cost);
+			String message = String.format("You dug a %s (harvest level is %f) with %d stamina.",
+					blockstate.getBlock().getLocalizedName(), hardness, (int) cost, (int) stamPack.getStamina());
+			player.addChatMessage(new TextComponentString(message));
+		} else {
+			String message = String.format("You are too tired to dig!", (int) cost);
+			player.addChatMessage(new TextComponentString(message));
+			if (tool != null)
+				player.getCooldownTracker().setCooldown(tool.getItem(), 20);
+			event.setCanceled(true);
+		}
 	}
 
 	@SubscribeEvent
